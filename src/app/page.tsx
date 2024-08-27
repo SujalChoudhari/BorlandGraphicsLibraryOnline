@@ -30,7 +30,6 @@ export default function Home() {
         { name: 'ellipse(x, y, startAngle, endAngle, xRadius, yRadius)', description: 'Draw ellipses and ovals' },
         { name: 'arc(x, y, startAngle, endAngle, radius)', description: 'Create circular arcs and curves' },
         { name: 'fillpoly(numPoints, points)', description: 'Draw and fill complex polygons' },
-        { name: 'floodfill(x, y, borderColor)', description: 'Fill enclosed areas with color' }
       ]
     },
     {
@@ -52,7 +51,9 @@ export default function Home() {
       items: [
         { name: 'cleardevice()', description: 'Clear the entire drawing area' },
         { name: 'setcolor(color)', description: 'Change the current drawing color' },
-        { name: 'setfillstyle(active, color)', description: 'Set fill pattern and color' }
+        { name: 'setfillstyle(active, color)', description: 'Set fill pattern and color' },
+        { name: 'EMPTY_FILL', description: "Set fill pattern to empty, i.e. no fill" },
+        { name: 'SOLID_FILL', description: "Set fill pattern to solid, i.e. solid fill" },
       ]
     },
     {
@@ -71,7 +72,7 @@ export default function Home() {
       description: 'Work with colors and palettes',
       items: [
         { name: 'getpixel(x, y)', description: 'Get the color of a pixel' },
-        { name: 'colorPalette', description: 'Array of RGB color strings' }
+        { name: 'BLACK, RED, BLUE, ...', description: 'All 15 standard colors supported' }
       ]
     },
     {
