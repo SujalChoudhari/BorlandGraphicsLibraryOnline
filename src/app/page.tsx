@@ -8,39 +8,41 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { motion } from 'framer-motion'
-import { Brush, ChevronRight, Code, Text, Wrench } from 'lucide-react'
+import { Brush, ChevronRight, Code, Text, Wrench, Cpu, Palette, Maximize2, Type } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export default function Home() {
   const router = useRouter()
   const [isHovered, setIsHovered] = useState(false)
-  const [currentInstruction, setCurrentInstruction] = useState(0)
 
   const instructions = [
     {
       icon: Brush,
       title: 'Drawing Operations',
-      description: 'Create stunning visuals with basic shapes and lines, these are inspired by the Borland graphics library',
+      description: 'Create stunning visuals with basic shapes and lines',
       items: [
-        { name: 'putpixel', description: 'Place a single pixel on the canvas' },
-        { name: 'line', description: 'Draw a straight line between two points' },
-        { name: 'circle', description: 'Create perfect circles with ease' },
-        { name: 'rectangle', description: 'Draw rectangles and squares' },
-        { name: 'bar', description: 'Create filled rectangles for solid areas' },
-        { name: 'ellipse', description: 'Draw ellipses and ovals' },
-        { name: 'arc', description: 'Create circular arcs and curves' },
-        { name: 'fillpoly', description: 'Draw and fill complex polygons' },
-        { name: 'floodfill', description: 'Fill enclosed areas with color' }
+        { name: 'putpixel(x, y, color)', description: 'Place a single pixel on the canvas' },
+        { name: 'line(x1, y1, x2, y2)', description: 'Draw a straight line between two points' },
+        { name: 'circle(x, y, radius)', description: 'Create perfect circles with ease' },
+        { name: 'rectangle(left, top, right, bottom)', description: 'Draw rectangles and squares' },
+        { name: 'bar(left, top, right, bottom)', description: 'Create filled rectangles for solid areas' },
+        { name: 'ellipse(x, y, startAngle, endAngle, xRadius, yRadius)', description: 'Draw ellipses and ovals' },
+        { name: 'arc(x, y, startAngle, endAngle, radius)', description: 'Create circular arcs and curves' },
+        { name: 'fillpoly(numPoints, points)', description: 'Draw and fill complex polygons' },
+        { name: 'floodfill(x, y, borderColor)', description: 'Fill enclosed areas with color' }
       ]
     },
     {
       icon: Text,
-      title: 'Text Operations',
+      title: 'Text Operations & Styles',
       description: 'Add and style text in your graphics',
       items: [
-        { name: 'outtextxy', description: 'Place text at specific coordinates' },
-        { name: 'settextstyle', description: 'Customize font, size, and direction' }
+        { name: 'outtextxy(x, y, text)', description: 'Place text at specific coordinates' },
+        { name: 'settextstyle(font, direction, size)', description: 'Customize font, size, and direction' },
+        { name: 'HORIZ_DIR, VERT_DIR', description: 'Text direction constants' },
+        { name: 'LEFT_TEXT, CENTER_TEXT, RIGHT_TEXT', description: 'Text alignment constants' },
+        { name: 'DEFAULT_FONT, TRIPLEX_FONT, etc.', description: 'Font type constants' }
       ]
     },
     {
@@ -48,13 +50,42 @@ export default function Home() {
       title: 'Utilities',
       description: 'Essential tools for managing your canvas',
       items: [
-        { name: 'cleardevice', description: 'Clear the entire drawing area' },
-        { name: 'setcolor', description: 'Change the current drawing color' },
-        { name: 'setfillstyle', description: 'Set fill pattern and color' }
+        { name: 'cleardevice()', description: 'Clear the entire drawing area' },
+        { name: 'setcolor(color)', description: 'Change the current drawing color' },
+        { name: 'setfillstyle(active, color)', description: 'Set fill pattern and color' }
       ]
     },
-  ]
+    {
+      icon: Cpu,
+      title: 'System Functions',
+      description: 'Initialize and manage the graphics system',
+      items: [
+        { name: 'initgraph(gd, gm, path)', description: 'Initialize the graphics system' },
+        { name: 'closegraph()', description: 'Close the graphics window' },
+        { name: 'detectgraph(gd, gm)', description: 'Detect graphics driver and mode' }
+      ]
+    },
+    {
+      icon: Palette,
+      title: 'Color Management',
+      description: 'Work with colors and palettes',
+      items: [
+        { name: 'getpixel(x, y)', description: 'Get the color of a pixel' },
+        { name: 'colorPalette', description: 'Array of RGB color strings' }
+      ]
+    },
+    {
+      icon: Maximize2,
+      title: 'Dimensions',
+      description: 'Get information about the drawing area',
+      items: [
+        { name: 'getmaxx()', description: 'Get the maximum X-coordinate' },
+        { name: 'getmaxy()', description: 'Get the maximum Y-coordinate' },
+        { name: 'maxX, maxY', description: 'Constants for max coordinates' }
+      ]
+    },
 
+  ]
 
   return (
     <div className="flex flex-col min-h-screen bg-[#1E1E1E] text-[#D4D4D4]">
@@ -74,9 +105,9 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-center z-10 max-w-4xl mx-auto h-[70vh]"
+          className="text-center z-10 max-w-4xl mx-auto"
         >
-          <h2 className="text-6xl font-semibold mb-8 text-[#4EC9B0] mt-40">
+          <h2 className="text-6xl font-semibold mb-8 text-[#4EC9B0]">
             Welcome to the Graphics Simulator
           </h2>
           <p className="text-xl mb-12 text-[#9CDCFE] max-w-2xl mx-auto">
@@ -100,13 +131,9 @@ export default function Home() {
         </div>
       </main>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0 }}
-        className="py-16 px-6 bg-[#252526]">
-        <h2 className="text-4xl font-bold mb-12 text-center text-[#4EC9B0]">Usage Instructions</h2>
-        <div className="max-w-7xl mx-auto">
+      <section className="py-16 px-6 bg-[#252526]">
+        <h2 className="text-4xl font-bold mb-12 text-center text-[#4EC9B0]">Graphics Library Reference</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {instructions.map((instruction, index) => (
             <motion.div
               key={instruction.title}
@@ -114,7 +141,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
             >
-              <Card className="bg-[#2D2D2D] border-none flex flex-col mt-8">
+              <Card className="bg-[#2D2D2D] border-none h-full flex flex-col">
                 <CardHeader>
                   <CardTitle className="flex items-center text-2xl text-[#4EC9B0]">
                     <instruction.icon className="mr-3 h-6 w-6" />
@@ -139,8 +166,7 @@ export default function Home() {
             </motion.div>
           ))}
         </div>
-      </motion.div>
-
+      </section>
 
       <footer className="bg-[#252526] text-[#D4D4D4] p-6 text-center">
         <p className="text-sm">

@@ -1,7 +1,8 @@
 "use client";
+import { translateCToJS } from '@/app/translateCode';
 import Editor from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, Edit2, Edit2Icon, Maximize2, Minimize2, Play, Terminal } from 'lucide-react';
+import { AlertCircle, CheckCircle, Edit2, Maximize2, Minimize2, Play, Terminal } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 const BorlandGraphicsSimulator = () => {
 
@@ -42,123 +43,6 @@ int main(){
         }
     }, []);
 
-    const translateCToJS = (cCode: string): string => {
-        let jsCode = cCode + "\nmain()";
-
-        // Remove #include statements, including possible spaces and comments
-        jsCode = jsCode.replace(/^\s*#include[^\n]*\n?/gm, '');
-
-        // Replace main function
-        jsCode = jsCode.replace(/(?:void|int|float|char|double|long|short)\s+(\w+)\s*\(([^)]*)\)\s*{/g, (match, funcName, params) => {
-            // Remove data types from parameters
-            let cleanedParams = params.replace(/(?:void|int|float|char|double|long|short)\s*(\w+)/g, '$1');
-            // Convert pass-by-reference parameters
-            cleanedParams = cleanedParams.replace(/&(\w+)/g, 'ref_$1');
-            return `async function ${funcName}(${cleanedParams}) {`;
-        });
-        jsCode = jsCode.replace(/return\s+0;?\s*}/g, '}');
-
-        // IO functions
-        jsCode = jsCode.replace(/getch\(\);?/g, 'await new Promise(resolve => setTimeout(resolve, 5000));');
-        jsCode = jsCode.replace(/printf\s*\(([^)]+)\);?/g, 'terminal($1);');
-        jsCode = jsCode.replace(/delay\s*\(([^)]+)\);?/g, 'await new Promise(resolve => setTimeout(resolve, $1));');
-        jsCode = jsCode.replace(/sleep\s*\(([^)]+)\);?/g, 'await new Promise(resolve => setTimeout(resolve, $1 * 1000));');
-        jsCode = jsCode.replace(/scanf\s*\(\s*"([^"]+)"[^)]*\)/g, (match, formatString) => {
-            // Split the format string to determine the number and type of inputs
-            const formatSpecifiers = formatString.match(/%[d|f|c|s]/g) || [];
-            const variableMatches = match.match(/&(\w+)/g);
-            const variables = variableMatches ? variableMatches.map(v => v.replace('&', '')) : [];
-
-            // Generate input prompts for each variable
-            let inputCode = '';
-            formatSpecifiers.forEach((specifier: string, index: number) => {
-                if (variables[index]) {
-                    inputCode += `${variables[index]} = prompt('Enter value for ${variables[index]}:');\n`;
-
-                    // Cast input based on format specifier
-                    switch (specifier) {
-                        case '%d': // Integer
-                            inputCode += `${variables[index]} = parseInt(${variables[index]});\n`;
-                            break;
-                        case '%f': // Float
-                            inputCode += `${variables[index]} = parseFloat(${variables[index]});\n`;
-                            break;
-                        case '%c': // Char (taking first character)
-                            inputCode += `${variables[index]} = ${variables[index]}.charAt(0);\n`;
-                            break;
-                        case '%s': // String
-                            inputCode += `${variables[index]} = ${variables[index]};\n`;
-                            break;
-                        default:
-                            inputCode += `${variables[index]} = ${variables[index]};\n`; // Default to string
-                    }
-                }
-            });
-
-            return inputCode;
-        });
-
-        // Handle variable declarations
-        const dataTypes = [
-            'int', 'float', 'double', 'char', 'long', 'short',
-            'unsigned', 'signed', 'bool', 'void'
-        ];
-        dataTypes.forEach(type => {
-            const regex = new RegExp(`${type}\\s+([a-zA-Z_][a-zA-Z0-9_]*(?:\\s*=\\s*[a-zA-Z0-9_]+)?(?:\\s*,\\s*[a-zA-Z_][a-zA-Z0-9_]*(?:\\s*=\\s*[a-zA-Z0-9_]+)?)*)\\s*;`, 'g');
-            jsCode = jsCode.replace(regex, 'let $1;');
-        });
-
-        // Replace graphics functions with JavaScript equivalents
-        jsCode = jsCode.replace(/initgraph\s*\(&([^,]+),\s*([^,]+),\s*([^)]+)\)/g, '// initgraph($1, $2, $3)');
-        jsCode = jsCode.replace(/detectgraph\s*\(&([^,]+),\s*([^)]*)\)/g, '// detectgraph($1, $2)');
-        jsCode = jsCode.replace(/closegraph\(\);?/g, '// closegraph();');
-
-        // Replace text and drawing functions
-        jsCode = jsCode.replace(/outtextxy\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, 'outtextxy($1, $2, $3)');
-        jsCode = jsCode.replace(/rectangle\s*\(([^,]+),\s*([^,]+),\s*([^,]+),\s*([^)]+)\)/g, 'rectangle($1, $2, $3, $4)');
-        jsCode = jsCode.replace(/circle\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, 'circle($1, $2, $3)');
-        jsCode = jsCode.replace(/setcolor\s*\(([^)]+)\)/g, 'setcolor($1)');
-        jsCode = jsCode.replace(/settextstyle\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, 'settextstyle($1, $2, $3)');
-        jsCode = jsCode.replace(/setfillstyle\s*\(([^,]+),\s*([^)]+)\)/g, 'setfillstyle($1, $2)');
-        jsCode = jsCode.replace(/floodfill\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, 'floodfill($1, $2, $3)');
-
-        // Replace math functions   
-        jsCode = jsCode.replace(/abs\(/g, 'Math.abs(');
-        jsCode = jsCode.replace(/sqrt\(/g, 'Math.sqrt(');
-        jsCode = jsCode.replace(/pow\(/g, 'Math.pow(');
-        jsCode = jsCode.replace(/sin\(/g, 'Math.sin(');
-        jsCode = jsCode.replace(/cos\(/g, 'Math.cos(');
-        jsCode = jsCode.replace(/tan\(/g, 'Math.tan(');
-        jsCode = jsCode.replace(/exp\(/g, 'Math.exp(');
-        jsCode = jsCode.replace(/rand\(/g, 'Math.random() * ');
-        jsCode = jsCode.replace(/ceil\(/g, 'Math.ceil(');
-        jsCode = jsCode.replace(/floor\(/g, 'Math.floor(');
-        jsCode = jsCode.replace(/round\(/g, 'Math.round(');
-
-        // 15 colors
-        jsCode = jsCode.replace(/BLACK/g, '0');
-        jsCode = jsCode.replace(/BLUE/g, '1');
-        jsCode = jsCode.replace(/GREEN/g, '2');
-        jsCode = jsCode.replace(/CYAN/g, '3');
-        jsCode = jsCode.replace(/RED/g, '4');
-        jsCode = jsCode.replace(/MAGENTA/g, '5');
-        jsCode = jsCode.replace(/BROWN/g, '6');
-        jsCode = jsCode.replace(/LIGHTGRAY/g, '7');
-        jsCode = jsCode.replace(/DARKGRAY/g, '8');
-        jsCode = jsCode.replace(/LIGHTBLUE/g, '9');
-        jsCode = jsCode.replace(/LIGHTGREEN/g, '10');
-        jsCode = jsCode.replace(/LIGHTCYAN/g, '11');
-        jsCode = jsCode.replace(/LIGHTRED/g, '12');
-        jsCode = jsCode.replace(/LIGHTMAGENTA/g, '13');
-        jsCode = jsCode.replace(/YELLOW/g, '14');
-        jsCode = jsCode.replace(/WHITE/g, '15');
-
-        // Wrap the entire code in an async function and run it
-        jsCode = `async function runSimulation() {\n${jsCode}\n}\nrunSimulation();`;
-
-        return jsCode;
-    };
-
     const runCode = async () => {
         setError('');
         setOutput('');
@@ -175,6 +59,7 @@ int main(){
             maxX: 640,
             maxY: 480,
             DETECT: 0,
+            _fillmode: false,
             colorPalette: [
                 'rgb(0, 0, 0)',       // 0: BLACK
                 'rgb(0, 0, 128)',     // 1: BLUE
@@ -194,9 +79,58 @@ int main(){
                 'rgb(255, 255, 255)'  // 15: WHITE
             ],
 
+
+            NORM_WIDTH: 1,
+            THICK_WIDTH: 3,
+
+            USER_CHAR_SIZE: 0,
+            HORIZ_DIR: 0,
+            VERT_DIR: 1,
+
+            LEFT_TEXT: "Left",
+            CENTER_TEXT: "Center",
+            RIGHT_TEXT: "Right",
+
+            DEFAULT_FONT: "Arial",
+            TRIPLEX_FONT: "Times New Roman",
+            SMALL_FONT: "Courier New",
+            SANS_SERIF_FONT: "Verdana",
+            GOTHIC_FONT: "MS Sans Serif",
+            SCRIPT_FONT: "Lucida Console",
+            SIMPLEX_FONT: "Symbol",
+            TRIPLEX_SCR_FONT: "Courier New",
+            COMPLEX_FONT: "Lucida Sans Typewriter",
+            EUROPEAN_FONT: "Lucida Sans",
+            BOLD_FONT: "Times New Roman",
+            BOLD_SCR_FONT: "Courier New",
+
+            EMPTY_FILL: 0,
+            SOLID_FILL: 1,
+            LINE_FILL: 0,
+            LTSLASH_FILL: 0,
+            SLASH_FILL: 0,
+            BKSLASH_FILL: 0,
+            LTBKSLASH_FILL: 0,
+            HATCH_FILL: 1,
+            XHATCH_FILL: 1,
+            INTERLEAVE_FILL: 1,
+            WIDE_DOT_FILL: 1,
+            CLOSE_DOT_FILL: 1,
+            USER_FILL: 0,
+
             terminal: (text: string) => {
-                setTerminal(previous => previous + text);
+                setTerminal(previous => previous + text + '\n');
             },
+
+            _draw: () => {
+                if (!ctx) return;
+                if (graphicsLib._fillmode) {
+                    ctx.fill();
+                } else {
+                    ctx.stroke();
+                }
+            },
+
 
             detectgraph: (gd: number, gm: number) => {
                 console.log('detectgraph called');
@@ -230,93 +164,24 @@ int main(){
             circle: (x: number, y: number, radius: number) => {
                 ctx?.beginPath();
                 ctx?.arc(x, y, radius, 0, 2 * Math.PI);
-                ctx?.stroke();
+                graphicsLib._draw();
             },
             rectangle: (left: number, top: number, right: number, bottom: number) => {
                 ctx?.beginPath();
                 ctx?.rect(left, top, right - left, bottom - top);
-                ctx?.stroke();
+                graphicsLib._draw();
             },
             setcolor: (color: number) => {
                 if (!ctx) return;
                 ctx.strokeStyle = graphicsLib.colorPalette[color] || graphicsLib.colorPalette[0];
             },
-            setfillstyle: (pattern: number, color: number) => {
+            setfillstyle: (active: number, color: number) => {
                 if (!ctx) return;
+                graphicsLib._fillmode = active == 0 ? false : true;
                 ctx.fillStyle = graphicsLib.colorPalette[color] || graphicsLib.colorPalette[0];
             },
             floodfill: (x: number, y: number, borderColor: number) => {
-                if (!ctx) return;
-                const imageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
-                const pixelStack = [[x, y]];
-                const startColor = ctx.getImageData(x, y, 1, 1).data;
-                const fillColor = graphicsLib.colorPalette[borderColor] || graphicsLib.colorPalette[0];
-
-                function matchStartColor(pixelPos: number) {
-                    const r = imageData.data[pixelPos];
-                    const g = imageData.data[pixelPos + 1];
-                    const b = imageData.data[pixelPos + 2];
-                    return r === startColor[0] && g === startColor[1] && b === startColor[2];
-                }
-
-                function colorPixel(pixelPos: number) {
-                    const rgbValues = fillColor.match(/\d+/g);
-                    if (!rgbValues) return;
-                    imageData.data[pixelPos] = parseInt(rgbValues[0]);
-                    imageData.data[pixelPos + 1] = parseInt(rgbValues[1]);
-                    imageData.data[pixelPos + 2] = parseInt(rgbValues[2]);
-                    imageData.data[pixelPos + 3] = 255; // Alpha
-                }
-
-                while (pixelStack.length) {
-                    const newPos = pixelStack.pop();
-                    if (!newPos) continue;
-                    let x = newPos[0];
-                    let y = newPos[1];
-
-                    let pixelPos = (y * ctx.canvas.width + x) * 4;
-
-                    while (y >= 0 && matchStartColor(pixelPos)) {
-                        y--;
-                        pixelPos -= ctx.canvas.width * 4;
-                    }
-
-                    pixelPos += ctx.canvas.width * 4;
-                    y++;
-
-                    let reachLeft = false;
-                    let reachRight = false;
-                    while (y <= ctx.canvas.height - 1 && matchStartColor(pixelPos)) {
-                        colorPixel(pixelPos);
-
-                        if (x > 0) {
-                            if (matchStartColor(pixelPos - 4)) {
-                                if (!reachLeft) {
-                                    pixelStack.push([x - 1, y]);
-                                    reachLeft = true;
-                                }
-                            } else if (reachLeft) {
-                                reachLeft = false;
-                            }
-                        }
-
-                        if (x < ctx.canvas.width - 1) {
-                            if (matchStartColor(pixelPos + 4)) {
-                                if (!reachRight) {
-                                    pixelStack.push([x + 1, y]);
-                                    reachRight = true;
-                                }
-                            } else if (reachRight) {
-                                reachRight = false;
-                            }
-                        }
-
-                        y++;
-                        pixelPos += ctx.canvas.width * 4;
-                    }
-                }
-
-                ctx.putImageData(imageData, 0, 0);
+                graphicsLib.terminal(`floodfill is not supported in Borland Graphics Simulator, use setfillstyle(1, ${borderColor}) instead`);
             },
             outtextxy: (x: number, y: number, text: string) => {
                 ctx?.fillText(text, x, y);
