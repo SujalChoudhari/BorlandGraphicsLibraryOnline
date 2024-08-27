@@ -353,7 +353,7 @@ int main(){
         };
 
 
-
+        setTerminal('Graphics library loaded');
         const jsCode = translateCToJS(code);
         try {
             const runGraphics = new Function('lib', 'input', `
