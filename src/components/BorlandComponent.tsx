@@ -2,8 +2,11 @@
 import { translateCToJS } from '@/app/translateCode';
 import Editor from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, Edit2, Maximize2, Minimize2, Play, Terminal } from 'lucide-react';
+import { AlertCircle, CheckCircle, Edit2, Maximize2, Minimize2, Play, Terminal, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+
+
+
 const BorlandGraphicsSimulator = () => {
 
     const [code, setCode] = useState<string>(`
@@ -22,11 +25,15 @@ int main(){
 	getch();
 	closegraph();
 	return 0;
-}`);
+}
+`);
+
     const [output, setOutput] = useState<string>('');
     const [error, setError] = useState<string>('');
     const [terminal, setTerminal] = useState<string>('');
     const [isFullScreen, setIsFullScreen] = useState<boolean>(false)
+    const [isMagnified, setIsMagnified] = useState(false)
+    const magnifiedCanvasRef = useRef<HTMLCanvasElement | null>(null)
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     const toggleFullScreen = () => {
@@ -42,6 +49,15 @@ int main(){
             }
         }
     }, []);
+
+    useEffect(() => {
+        if (isMagnified && canvasRef.current && magnifiedCanvasRef.current) {
+            const ctx = magnifiedCanvasRef.current.getContext('2d')
+            if (ctx) {
+                ctx.drawImage(canvasRef.current, 0, 0, 640, 480, 0, 0, magnifiedCanvasRef.current.width, magnifiedCanvasRef.current.height)
+            }
+        }
+    }, [isMagnified])
 
     const runCode = async () => {
         setError('');
@@ -227,7 +243,7 @@ int main(){
                         ${jsCode}
                 }
             })();
-                        `);
+            `);
             await runGraphics(graphicsLib, []);
             setOutput('Graphics rendered successfully');
             setTerminal(prev => prev + "\nProgram Ended");
@@ -238,9 +254,36 @@ int main(){
             setError(`Error: ${(err as Error).toString()}`);
             setTimeout(() => {
                 setError('');
-            }, 5000)
+            }, 5000);
         }
     };
+
+
+    const MagnifiedCanvas = () => (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
+        >
+            <div className="relative py-8 px-16 h-[90vh] bg-[#1e1e1e] rounded-lg shadow-2xl overflow-hidden">
+                <canvas
+                    ref={magnifiedCanvasRef}
+                    width="1920"
+                    height="1440"
+                    className="w-full h-full object-contain"
+                />
+                <button
+                    onClick={() => setIsMagnified(false)}
+                    className="absolute top-4 right-4 p-2 bg-[#3c3c3c] text-[#d4d4d4] rounded-full hover:bg-[#4c4c4c] transition-colors duration-150"
+                    aria-label="Close magnified view"
+                >
+                    <X size={24} />
+                </button>
+            </div>
+        </motion.div>
+    )
+
 
     return (
         <div className="flex flex-col h-screen bg-gradient-to-br from-[#1e1e1e] to-[#2d2d2d] text-[#d4d4d4]">
@@ -299,9 +342,9 @@ int main(){
                                     ref={canvasRef}
                                     width="640"
                                     height="480"
-                                    className="border border-[#3c3c3c] w-full h-[60%] object-contain shadow-inner"
+                                    className="border border-[#3c3c3c] w-full h-[60%] object-contain shadow-inner cursor-pointer"
+                                    onClick={() => setIsMagnified(true)}
                                 />
-
                                 {/* Output Terminal */}
                                 <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-[#252526] p-4 border-t border-[#3c3c3c]">
                                     <h2 className="text-lg font-bold mb-2 flex items-center text-[#d4d4d4]">
@@ -365,7 +408,11 @@ int main(){
                     )}
                 </AnimatePresence>
             </div>
-        </div>
+
+            <AnimatePresence>
+                {isMagnified && <MagnifiedCanvas />}
+            </AnimatePresence>
+        </div >
     );
 
 };
