@@ -353,7 +353,7 @@ int main(){
         };
 
 
-        setTerminal('Graphics library loaded');
+        setTerminal('Program Started\n');
         const jsCode = translateCToJS(code);
         try {
             const runGraphics = new Function('lib', 'input', `
@@ -365,6 +365,7 @@ int main(){
                         `);
             await runGraphics(graphicsLib, []);
             setOutput('Graphics rendered successfully');
+            setTerminal(prev => prev + "\nProgram Ended");
             setTimeout(() => {
                 setOutput('');
             }, 2000);

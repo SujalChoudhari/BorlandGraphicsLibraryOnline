@@ -1,7 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -9,8 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Brush, Text, Wrench, ChevronRight, Code } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
+import { Brush, ChevronRight, Code, Text, Wrench } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function Home() {
   const router = useRouter()
@@ -21,7 +21,7 @@ export default function Home() {
     {
       icon: Brush,
       title: 'Drawing Operations',
-      description: 'Create stunning visuals with basic shapes and lines',
+      description: 'Create stunning visuals with basic shapes and lines, these are inspired by the Borland graphics library',
       items: [
         { name: 'putpixel', description: 'Place a single pixel on the canvas' },
         { name: 'line', description: 'Draw a straight line between two points' },
@@ -55,12 +55,6 @@ export default function Home() {
     },
   ]
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentInstruction((prev) => (prev + 1) % instructions.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [])
 
   return (
     <div className="flex flex-col min-h-screen bg-[#1E1E1E] text-[#D4D4D4]">
@@ -80,9 +74,9 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-center z-10 max-w-4xl mx-auto"
+          className="text-center z-10 max-w-4xl mx-auto h-[70vh]"
         >
-          <h2 className="text-6xl font-semibold mb-8 text-[#4EC9B0]">
+          <h2 className="text-6xl font-semibold mb-8 text-[#4EC9B0] mt-40">
             Welcome to the Graphics Simulator
           </h2>
           <p className="text-xl mb-12 text-[#9CDCFE] max-w-2xl mx-auto">
@@ -150,7 +144,7 @@ export default function Home() {
 
       <footer className="bg-[#252526] text-[#D4D4D4] p-6 text-center">
         <p className="text-sm">
-          &copy; {new Date().getFullYear()} Borland Graphics Simulator. Empowering digital creativity.
+          &copy; {new Date().getFullYear()} | Sujal Choudhari
         </p>
       </footer>
     </div>
