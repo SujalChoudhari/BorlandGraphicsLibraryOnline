@@ -1,113 +1,154 @@
-import Image from "next/image";
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Brush, Text, Wrench, ChevronRight, Code } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Home() {
+  const router = useRouter()
+  const [isHovered, setIsHovered] = useState(false)
+  const [currentInstruction, setCurrentInstruction] = useState(0)
+
+  const instructions = [
+    {
+      icon: Brush,
+      title: 'Drawing Operations',
+      description: 'Create stunning visuals with basic shapes and lines',
+      items: [
+        { name: 'putpixel', description: 'Place a single pixel on the canvas' },
+        { name: 'line', description: 'Draw a straight line between two points' },
+        { name: 'circle', description: 'Create perfect circles with ease' },
+        { name: 'rectangle', description: 'Draw rectangles and squares' },
+        { name: 'bar', description: 'Create filled rectangles for solid areas' },
+        { name: 'ellipse', description: 'Draw ellipses and ovals' },
+        { name: 'arc', description: 'Create circular arcs and curves' },
+        { name: 'fillpoly', description: 'Draw and fill complex polygons' },
+        { name: 'floodfill', description: 'Fill enclosed areas with color' }
+      ]
+    },
+    {
+      icon: Text,
+      title: 'Text Operations',
+      description: 'Add and style text in your graphics',
+      items: [
+        { name: 'outtextxy', description: 'Place text at specific coordinates' },
+        { name: 'settextstyle', description: 'Customize font, size, and direction' }
+      ]
+    },
+    {
+      icon: Wrench,
+      title: 'Utilities',
+      description: 'Essential tools for managing your canvas',
+      items: [
+        { name: 'cleardevice', description: 'Clear the entire drawing area' },
+        { name: 'setcolor', description: 'Change the current drawing color' },
+        { name: 'setfillstyle', description: 'Set fill pattern and color' }
+      ]
+    },
+  ]
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentInstruction((prev) => (prev + 1) % instructions.length)
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [])
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="flex flex-col min-h-screen bg-[#1E1E1E] text-[#D4D4D4]">
+      <header className="bg-[#252526] text-[#D4D4D4] p-6 flex justify-between items-center shadow-lg">
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-4xl font-bold flex items-center"
+        >
+          <Brush className="mr-3 text-[#4EC9B0]" /> Borland Graphics Simulator
+        </motion.h1>
+      </header>
+
+      <main className="flex-1 flex flex-col justify-center items-center p-12 relative overflow-hidden">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="text-center z-10 max-w-4xl mx-auto"
+        >
+          <h2 className="text-6xl font-semibold mb-8 text-[#4EC9B0]">
+            Welcome to the Graphics Simulator
+          </h2>
+          <p className="text-xl mb-12 text-[#9CDCFE] max-w-2xl mx-auto">
+            Dive into the world of digital artistry and programming. Create, explore, and bring your ideas to life with our powerful graphics toolkit.
+          </p>
+          <Button
+            className="px-8 py-4 bg-[#007ACC] text-white rounded-full hover:bg-[#005A9E] transition duration-300 text-xl shadow-lg group"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onClick={() => router.push('/simulator')}
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+            <span className="mr-2">Launch Graphics Editor</span>
+            <ChevronRight className={`inline-block transition-transform duration-300 ${isHovered ? 'translate-x-2' : ''} group-hover:translate-x-2`} />
+          </Button>
+        </motion.div>
+
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-[#4EC9B0] rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+          <div className="absolute top-3/4 right-1/4 w-64 h-64 bg-[#9CDCFE] rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-1/4 left-1/2 w-64 h-64 bg-[#C586C0] rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
         </div>
-      </div>
+      </main>
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+      <section className="py-16 px-6 bg-[#252526]">
+        <h2 className="text-4xl font-bold mb-12 text-center text-[#4EC9B0]">Usage Instructions</h2>
+        <div className="max-w-7xl mx-auto">
+          {instructions.map((instruction, index) => (
+            <motion.div
+              key={instruction.title}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+            >
+              <Card className="bg-[#2D2D2D] border-none flex flex-col mt-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center text-2xl text-[#4EC9B0]">
+                    <instruction.icon className="mr-3 h-6 w-6" />
+                    {instruction.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <p className="text-[#9CDCFE] mb-4">{instruction.description}</p>
+                  <ul className="space-y-3">
+                    {instruction.items.map((item) => (
+                      <li key={item.name} className="flex items-start">
+                        <Code className="mr-2 h-5 w-5 text-[#DCDCAA] flex-shrink-0 mt-1" />
+                        <div>
+                          <code className="text-[#CE9178]">{item.name}</code>
+                          <p className="text-sm text-[#9CDCFE] mt-1">{item.description}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      </section>
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+      <footer className="bg-[#252526] text-[#D4D4D4] p-6 text-center">
+        <p className="text-sm">
+          &copy; {new Date().getFullYear()} Borland Graphics Simulator. Empowering digital creativity.
+        </p>
+      </footer>
+    </div>
+  )
 }
