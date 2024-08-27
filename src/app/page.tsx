@@ -106,7 +106,11 @@ export default function Home() {
         </div>
       </main>
 
-      <section className="py-16 px-6 bg-[#252526]">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0 }}
+        className="py-16 px-6 bg-[#252526]">
         <h2 className="text-4xl font-bold mb-12 text-center text-[#4EC9B0]">Usage Instructions</h2>
         <div className="max-w-7xl mx-auto">
           {instructions.map((instruction, index) => (
@@ -141,7 +145,7 @@ export default function Home() {
             </motion.div>
           ))}
         </div>
-      </section>
+      </motion.div>
 
 
       <footer className="bg-[#252526] text-[#D4D4D4] p-6 text-center">
