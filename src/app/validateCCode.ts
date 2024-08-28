@@ -30,7 +30,7 @@ function validateCCode(code: string): string[] {
         }
 
         // Check for missing semicolons
-        if (!/;\s*$/.test(line) && !/^\s*#/.test(line) && !/^\s*$/.test(line) && !/{/.test(line) && !/}/.test(line)) {
+        if (!/;\s*(\/\/.*)?$/.test(line) && !/^\s*#/.test(line) && !/^\s*$/.test(line) && !/{/.test(line) && !/}/.test(line)) {
             errors.push(`line: ${lineNumber + 1} Missing semicolon at the end of the line`);
         }
 
