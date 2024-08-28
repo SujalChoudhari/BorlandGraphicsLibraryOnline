@@ -41,6 +41,14 @@ int main(){
     }
 
     useEffect(() => {
+        // load code from local storage
+        const storedCode = localStorage.getItem('code');
+        if (storedCode) {
+            setCode(storedCode);
+        }
+    }, []);
+
+    useEffect(() => {
         if (canvasRef.current) {
             const ctx = canvasRef.current.getContext('2d');
             if (ctx) {
@@ -48,6 +56,7 @@ int main(){
                 ctx.fillRect(0, 0, 640, 480);
             }
         }
+
     }, []);
 
     useEffect(() => {
@@ -60,6 +69,10 @@ int main(){
     }, [isMagnified])
 
     const runCode = async () => {
+        // save code to local storage
+        localStorage.setItem('code', code);
+
+
         setError('');
         setOutput('');
         const ctx = canvasRef.current?.getContext('2d');
@@ -188,7 +201,13 @@ int main(){
             getpixel: (x: number, y: number) => {
                 if (!ctx) return -1;
                 const pixel = ctx.getImageData(x, y, 1, 1).data;
-                return pixel[0];
+                const pixelColor = `rgb(${pixel[0]}, ${pixel[1]}, ${pixel[2]})`;
+
+                // Find the color index by matching the pixel's color with the palette
+                const colorIndex = graphicsLib.colorPalette.findIndex(color => color === pixelColor);
+
+                // If the color is found, return its index; otherwise, return -1
+                return colorIndex !== -1 ? colorIndex : -1;
             },
 
             line: (x1: number, y1: number, x2: number, y2: number) => {
