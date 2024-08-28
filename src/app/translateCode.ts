@@ -15,7 +15,7 @@ const translateCode = (cCode: string): string => {
     jsCode = jsCode.replace(/return\s+0;?\s*}/g, '}');
 
     // IO functions
-    jsCode = jsCode.replace(/getch\(\);?/g, 'await new Promise(resolve => setTimeout(resolve, 5000));');
+    jsCode = jsCode.replace(/getch\(\);?/g, 'prompt("Enter any character to continue");');
     jsCode = jsCode.replace(/printf\s*\(([^)]+)\);?/g, 'terminal($1);');
     jsCode = jsCode.replace(/delay\s*\(([^)]+)\);?/g, 'await new Promise(resolve => setTimeout(resolve, $1));');
     jsCode = jsCode.replace(/sleep\s*\(([^)]+)\);?/g, 'await new Promise(resolve => setTimeout(resolve, $1 * 1000));');
@@ -65,18 +65,10 @@ const translateCode = (cCode: string): string => {
     });
 
     // Replace graphics functions with JavaScript equivalents
-    jsCode = jsCode.replace(/initgraph\s*\(&([^,]+),\s*([^,]+),\s*([^)]+)\)/g, '// initgraph($1, $2, $3)');
-    jsCode = jsCode.replace(/detectgraph\s*\(&([^,]+),\s*([^)]*)\)/g, '// detectgraph($1, $2)');
-    jsCode = jsCode.replace(/closegraph\(\);?/g, '// closegraph();');
+    jsCode = jsCode.replace(/initgraph\s*\(&([^,]+),\s*([^,]+),\s*([^)]+)\)/g, 'terminal("Graph Initialized");');
+    jsCode = jsCode.replace(/detectgraph\s*\(&([^,]+),\s*([^)]*)\)/g, 'terminal("Graph Detected");');
+    jsCode = jsCode.replace(/closegraph\(\);?/g, 'terminal("Graph Closed");');
 
-    // Replace text and drawing functions
-    jsCode = jsCode.replace(/outtextxy\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, 'outtextxy($1, $2, $3)');
-    jsCode = jsCode.replace(/rectangle\s*\(([^,]+),\s*([^,]+),\s*([^,]+),\s*([^)]+)\)/g, 'rectangle($1, $2, $3, $4)');
-    jsCode = jsCode.replace(/circle\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, 'circle($1, $2, $3)');
-    jsCode = jsCode.replace(/setcolor\s*\(([^)]+)\)/g, 'setcolor($1)');
-    jsCode = jsCode.replace(/settextstyle\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, 'settextstyle($1, $2, $3)');
-    jsCode = jsCode.replace(/setfillstyle\s*\(([^,]+),\s*([^)]+)\)/g, 'setfillstyle($1, $2)');
-    jsCode = jsCode.replace(/floodfill\s*\(([^,]+),\s*([^,]+),\s*([^)]+)\)/g, 'floodfill($1, $2, $3)');
 
     // Replace math functions   
     jsCode = jsCode.replace(/abs\(/g, 'Math.abs(');

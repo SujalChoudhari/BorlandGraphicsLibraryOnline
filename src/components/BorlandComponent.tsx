@@ -139,8 +139,6 @@ int main(){
                 setTerminal(previous => previous + text + '\n');
             },
 
-
-
             _updateCanvas: () => {
                 if (!ctx) return;
                 // Create a temporary canvas to hold the current state
