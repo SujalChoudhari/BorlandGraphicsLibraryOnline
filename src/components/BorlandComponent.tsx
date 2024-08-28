@@ -23,7 +23,6 @@ int main(){
 	line(originX,0,originX,maxY);
     // your code here
 
-	getch();
 	closegraph();
 	return 0;
 }

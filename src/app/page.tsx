@@ -106,9 +106,9 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-center z-10 max-w-4xl mx-auto"
+          className="text-center z-10 max-w-4xl mx-auto h-[60vh]"
         >
-          <h2 className="text-6xl font-semibold mb-8 text-[#4EC9B0]">
+          <h2 className="text-6xl font-semibold mb-8 text-[#4EC9B0] mt-24">
             Welcome to the Graphics Simulator
           </h2>
           <p className="text-xl mb-12 text-[#9CDCFE] max-w-2xl mx-auto">
@@ -132,7 +132,12 @@ export default function Home() {
         </div>
       </main>
 
-      <section className="py-16 px-6 bg-[#252526]">
+      <motion.div
+        className="py-16 px-6 bg-[#252526]"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0 }}
+      >
         <h2 className="text-4xl font-bold mb-12 text-center text-[#4EC9B0]">Graphics Library Reference</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {instructions.map((instruction, index) => (
@@ -167,7 +172,7 @@ export default function Home() {
             </motion.div>
           ))}
         </div>
-      </section>
+      </motion.div>
 
       <footer className="bg-[#252526] text-[#D4D4D4] p-6 text-center">
         <p className="text-sm">
