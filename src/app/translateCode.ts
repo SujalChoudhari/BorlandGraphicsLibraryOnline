@@ -1,4 +1,4 @@
-const translateCToJS = (cCode: string): string => {
+const translateCode = (cCode: string): string => {
     let jsCode = cCode + "\nmain()";
 
     // Remove #include statements, including possible spaces and comments
@@ -116,4 +116,4 @@ const translateCToJS = (cCode: string): string => {
     return jsCode;
 };
 
-export { translateCToJS };
+export { translateCode };

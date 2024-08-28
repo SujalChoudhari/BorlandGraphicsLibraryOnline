@@ -1,5 +1,6 @@
 "use client";
-import { translateCToJS } from '@/app/translateCode';
+import { translateCode } from '@/app/translateCode';
+import { validateCCode } from '@/app/validateCCode';
 import Editor from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, Edit2, Maximize2, Minimize2, Play, Terminal, X } from 'lucide-react';
@@ -138,6 +139,26 @@ int main(){
                 setTerminal(previous => previous + text + '\n');
             },
 
+
+
+            _updateCanvas: () => {
+                if (!ctx) return;
+                // Create a temporary canvas to hold the current state
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = ctx.canvas.width;
+                tempCanvas.height = ctx.canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                // Draw the current canvas state to the temporary canvas
+                tempCtx?.drawImage(ctx.canvas, 0, 0);
+
+                // Clear the main canvas
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+                // Draw the temporary canvas back to the main canvas
+                ctx.drawImage(tempCanvas, 0, 0);
+            },
+
             _draw: () => {
                 if (!ctx) return;
                 if (graphicsLib._fillmode) {
@@ -145,6 +166,8 @@ int main(){
                 } else {
                     ctx.stroke();
                 }
+
+                graphicsLib._updateCanvas();
             },
 
 
@@ -235,7 +258,14 @@ int main(){
 
 
         setTerminal('Program Started\n');
-        const jsCode = translateCToJS(code);
+        const errors = validateCCode(code);
+        if (errors.length > 0) {
+            setError("Invalid Code: Check Terminal");
+            setTerminal(errors.join('\n'));
+            return;
+        }
+        const jsCode = translateCode(code);
+        console.log(jsCode);
         try {
             const runGraphics = new Function('lib', 'input', `
                 return (async () => {
