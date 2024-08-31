@@ -1,11 +1,12 @@
 "use client";
 import { graphicsLibDefinitions } from '@/app/libraryDefination';
-import { translateCode } from '@/app/translateCode';
-import { validateCCode } from '@/app/validateCCode';
+import { templates } from '@/app/templates';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Editor from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, Edit2, Maximize2, Minimize2, Play, Terminal, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, Edit2, Maximize2, Minimize2, Pause, Play, Terminal, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { Button } from './ui/button';
 
 
 
@@ -13,17 +14,15 @@ const BorlandGraphicsSimulator = () => {
 
     const [code, setCode] = useState<string>(`
 // Draw Axis
-let maxX = getmaxx();
-let maxY = getmaxy();
 let originX = maxX /2;
 let originY = maxY /2;
 line(0,originY,maxX,originY);
 line(originX,0,originX,maxY);
 
 // your code here
-closegraph();
 
 `);
+
 
     const [output, setOutput] = useState<string>('');
     const [error, setError] = useState<string>('');
@@ -32,6 +31,13 @@ closegraph();
     const [isMagnified, setIsMagnified] = useState(false)
     const magnifiedCanvasRef = useRef<HTMLCanvasElement | null>(null)
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [isRunning, setIsRunning] = useState(false);
+    const abortControllerRef = useRef<AbortController | null>(null);
+
+
+    const handleTemplateSelect = (index: string) => {
+        setCode(templates[parseInt(index)].code);
+    }
 
     const toggleFullScreen = () => {
         setIsFullScreen(!isFullScreen)
@@ -184,6 +190,12 @@ closegraph();
                 ctx.drawImage(tempCanvas, 0, 0);
             },
 
+            checkAbort: () => {
+                if (abortControllerRef!.current!.signal.aborted) {
+                    throw new Error('Execution aborted');
+                }
+            },
+
             _draw: () => {
                 if (!ctx) return;
                 if (graphicsLib._fillmode) {
@@ -299,13 +311,20 @@ closegraph();
                 ctx?.stroke();
             },
             fillpoly: (numPoints: number, points: number[]) => {
-                ctx?.beginPath();
-                ctx?.moveTo(points[0], points[1]);
-                for (let i = 2; i < numPoints * 2; i += 2) {
-                    ctx?.lineTo(points[i], points[i + 1]);
+                if (numPoints < 3) {
+                    console.error('A polygon must have at least 3 points.');
+                    return;
                 }
-                ctx?.closePath();
-                ctx?.fill();
+
+                ctx!.beginPath();
+                ctx!.moveTo(points[0], points[1]);
+
+                for (let i = 2; i < numPoints * 2; i += 2) {
+                    ctx!.lineTo(points[i], points[i + 1]);
+                }
+
+                ctx!.closePath();
+                ctx!.fill();
             },
         };
 
@@ -325,29 +344,60 @@ closegraph();
             }
         }
 
+        // every fifth line add a checkAbort() call
+        const splitCode = code.split('\n');
+
+        for (let i = 0; i < splitCode.length; i++) {
+            if (i % 5 === 0) {
+                splitCode[i] = `checkAbort();\n${splitCode[i]}`;
+            }
+        }
+
+        let newCode = splitCode.join('\n');
 
         setTerminal('Program Started\n');
+        abortControllerRef.current = new AbortController();
+        setIsRunning(true);
         try {
-            const runGraphics = new Function('lib', 'input', `
+            let runGraphics = new Function('lib', 'input', 'abortControllerRef', `
                 return (async () => {
-                with (lib) {
-                        ${code}
-                }
-            })();
+                    with (lib) {
+                        ${newCode}
+                    }
+                })();
             `);
-            await runGraphics(graphicsLib, []);
+            await runGraphics(graphicsLib, [], abortControllerRef);
+            return;
+        } catch (error) {
+            if (abortControllerRef.current!.signal.aborted) {
+                setTerminal(prev => prev + "\nProgram Aborted");
+            } else {
+                setTerminal(prev => prev + "\nProgram Error");
+                setError((error as Error).message);
+                setTimeout(() => {
+                    setError('');
+                }, 5000)
+            }
+            setIsRunning(false);
+            return;
+        }
+        finally {
             setOutput('Graphics rendered successfully');
-            setTerminal(prev => prev + "\nProgram Ended");
             setTimeout(() => {
                 setOutput('');
-            }, 2000);
-        } catch (err) {
-            setError(`Error: ${(err as Error).toString()}`);
-            setTimeout(() => {
-                setError('');
-            }, 5000);
+            }, 1000)
+            setTerminal(prev => prev + "\nProgram Ended");
+            setIsRunning(false);
         }
     };
+
+    const stopCode = () => {
+        if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+        }
+    };
+
+
 
 
     const MagnifiedCanvas = () => (
@@ -392,19 +442,36 @@ closegraph();
                             </h2>
 
                             <div className='flex flex-row gap-4 items-center justify-center'>
-                                <button
-                                    className=" px-4 py-2 bg-[#007acc] text-white rounded-md hover:bg-[#006bb3] transition duration-150 flex items-center justify-center shadow-md"
-                                    onClick={runCode}
-                                >
-                                    <Play size={18} />
-                                </button>
-                                <button
-                                    className="px-4 py-2 bg-[#3c3c3c] text-[#d4d4d4] rounded hover:bg-[#4c4c4c] transition-colors duration-150"
-                                    onClick={toggleFullScreen}
-                                    aria-label={isFullScreen ? "Exit full screen" : "Enter full screen"}
-                                >
+
+                                <Select onValueChange={handleTemplateSelect}>
+                                    <SelectTrigger className="w-40 bg-[#1e1e1e] text-[#d4d4d4] border border-[#3c3c3c] focus:ring-[#007acc] focus:ring-opacity-50">
+                                        <SelectValue placeholder="Templates" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-[#2d2d2d] text-[#d4d4d4] border border-[#3c3c3c]">
+                                        {templates.map((template, index) => (
+                                            <SelectItem
+                                                key={index}
+                                                value={`${index}`}
+                                                className="focus:bg-[#3c3c3c] focus:text-[#d4d4d4]"
+                                            >
+                                                {template.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+
+                                <Button variant="ghost" size="icon" onClick={toggleFullScreen}>
                                     {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                                </button>
+                                </Button>
+
+                                <Button variant="default" size="icon" onClick={runCode} disabled={isRunning} className='bg-teal-700 hover:bg-teal-950'>
+                                    <Play size={18} />
+                                </Button>
+
+                                <Button variant="default" size="icon" onClick={stopCode} disabled={!isRunning} className=''>
+                                    <Pause size={18} />
+                                </Button>
+
                             </div>
                         </div>
                         <Editor
@@ -502,13 +569,6 @@ closegraph();
                                     )}
                                 </AnimatePresence>
 
-                                <button
-                                    className="absolute bottom-4 right-4 px-4 py-2 bg-[#007acc] text-white rounded-md hover:bg-[#006bb3] transition duration-150 flex items-center shadow-md"
-                                    onClick={runCode}
-                                >
-                                    <Play className="mr-2" size={18} />
-                                    Run Code
-                                </button>
                             </div>
                         </motion.div>
                     )}

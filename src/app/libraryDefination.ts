@@ -13,7 +13,6 @@ const graphicsLibDefinitions = `
     declare function rectangle(left: number, top: number, right: number, bottom: number): void;
     declare function setcolor(color: number): void;
     declare function setfillstyle(active: number, color: number): void;
-    declare function floodfill(x: number, y: number, borderColor: number): void;
     declare function outtextxy(x: number, y: number, text: string): void;
     declare function settextstyle(font: string, direction: number, size: number): void;
     declare function bar(left: number, top: number, right: number, bottom: number): void;
