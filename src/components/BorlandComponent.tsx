@@ -427,158 +427,147 @@ line(originX,0,originX,maxY);
 
 
     return (
-        <div className="flex flex-col h-screen bg-gradient-to-br from-[#1e1e1e] to-[#2d2d2d] text-[#d4d4d4]">
-            <div className="flex flex-1 p-4 space-x-4">
-                {/* Code Editor */}
-                <motion.div
-                    className={`${isFullScreen ? 'w-full' : 'w-1/2'} h-full transition-all duration-300 ease-in-out bg-[#1e1e1e] rounded-lg shadow-lg overflow-hidden`}
-                    layout
-                >
-                    <div className="h-full relative flex flex-col">
-                        <div className="flex items-center justify-between p-3 bg-[#2d2d2d] border-b border-[#3c3c3c]">
-                            <h2 className="text-lg font-bold flex items-center text-[#d4d4d4]">
-                                <Edit2 className="mr-2" size={18} />
-                                Code Editor (JS)
-                            </h2>
+        <div className="flex flex-col h-screen bg-gradient-to-br from-[#1e1e1e] to-[#2d2d2d] text-[#d4d4d4] p-4 space-y-4 md:space-y-0 md:flex-row md:space-x-4">
+            <motion.div
+                className={`${isFullScreen ? 'w-full' : 'w-full md:w-1/2'} h-full md:h-auto transition-all duration-300 ease-in-out bg-[#1e1e1e] rounded-lg shadow-lg overflow-hidden`}
+                layout
+            >
+                <div className="h-full relative flex flex-col">
+                    <div className="flex flex-col sm:flex-row items-center justify-between p-3 bg-[#2d2d2d] border-b border-[#3c3c3c]">
+                        <h2 className="text-lg font-bold flex items-center text-[#d4d4d4] mb-2 sm:mb-0">
+                            <Edit2 className="mr-2" size={18} />
+                            Code Editor (JS)
+                        </h2>
 
-                            <div className='flex flex-row gap-4 items-center justify-center'>
+                        <div className='flex flex-wrap gap-2 items-center justify-center'>
+                            <Select onValueChange={handleTemplateSelect}>
+                                <SelectTrigger className="w-40 bg-[#1e1e1e] text-[#d4d4d4] border border-[#3c3c3c] focus:ring-[#007acc] focus:ring-opacity-50">
+                                    <SelectValue placeholder="Templates" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-[#2d2d2d] text-[#d4d4d4] border border-[#3c3c3c]">
+                                    {templates.map((template, index) => (
+                                        <SelectItem
+                                            key={index}
+                                            value={`${index}`}
+                                            className="focus:bg-[#3c3c3c] focus:text-[#d4d4d4]"
+                                        >
+                                            {template.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
 
-                                <Select onValueChange={handleTemplateSelect}>
-                                    <SelectTrigger className="w-40 bg-[#1e1e1e] text-[#d4d4d4] border border-[#3c3c3c] focus:ring-[#007acc] focus:ring-opacity-50">
-                                        <SelectValue placeholder="Templates" />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-[#2d2d2d] text-[#d4d4d4] border border-[#3c3c3c]">
-                                        {templates.map((template, index) => (
-                                            <SelectItem
-                                                key={index}
-                                                value={`${index}`}
-                                                className="focus:bg-[#3c3c3c] focus:text-[#d4d4d4]"
-                                            >
-                                                {template.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                            <Button variant="ghost" size="icon" onClick={toggleFullScreen}>
+                                {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                            </Button>
 
-                                <Button variant="ghost" size="icon" onClick={toggleFullScreen}>
-                                    {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                                </Button>
+                            <Button variant="default" size="icon" onClick={runCode} disabled={isRunning} className='bg-teal-700 hover:bg-teal-950'>
+                                <Play size={18} />
+                            </Button>
 
-                                <Button variant="default" size="icon" onClick={runCode} disabled={isRunning} className='bg-teal-700 hover:bg-teal-950'>
-                                    <Play size={18} />
-                                </Button>
-
-                                <Button variant="default" size="icon" onClick={stopCode} disabled={!isRunning} className=''>
-                                    <Pause size={18} />
-                                </Button>
-
-                            </div>
+                            <Button variant="default" size="icon" onClick={stopCode} disabled={!isRunning} className=''>
+                                <Pause size={18} />
+                            </Button>
                         </div>
-                        <Editor
-                            defaultLanguage='javascript'
-                            theme="vs-dark"
-                            loading={<div className="text-center p-4">Loading Graphics Library...</div>}
-                            className="flex-grow"
-                            onChange={(value) => setCode(value || '')}
-                            value={code}
-                            options={{
-                                minimap: { enabled: false },
-                                scrollBeyondLastLine: false,
-                                fontSize: 14,
-                                lineNumbers: 'on',
-                                roundedSelection: false,
-                                automaticLayout: true,
-                                wordWrap: 'on',
-                                padding: { top: 10 },
-                                autoClosingBrackets: 'always',
-                            }}
-                            onMount={(editor, monaco) => {
-                                // Inject type definitions for graphicsLib
-                                monaco.languages.typescript.javascriptDefaults.addExtraLib(graphicsLibDefinitions, 'graphicsLib.d.ts');
-                            }}
-                        />
                     </div>
-                </motion.div>
+                    <Editor
+                        defaultLanguage='javascript'
+                        theme="vs-dark"
+                        loading={<div className="text-center p-4">Loading Graphics Library...</div>}
+                        className="flex-grow"
+                        onChange={(value) => setCode(value || '')}
+                        value={code}
+                        options={{
+                            minimap: { enabled: false },
+                            scrollBeyondLastLine: false,
+                            fontSize: 14,
+                            lineNumbers: 'on',
+                            roundedSelection: false,
+                            automaticLayout: true,
+                            wordWrap: 'on',
+                            padding: { top: 10 },
+                            autoClosingBrackets: 'always',
+                        }}
+                    />
+                </div>
+            </motion.div>
 
-                {/* Output & Canvas */}
-                <AnimatePresence>
-                    {!isFullScreen && (
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            transition={{ duration: 0.3 }}
-                            className="w-1/2 h-full flex flex-col bg-[#2d2d2d] rounded-lg shadow-lg overflow-hidden"
-                        >
-                            <div className="flex-1 relative bg-[#1e1e1e] rounded-lg overflow-hidden">
-                                <canvas
-                                    ref={canvasRef}
-                                    width="640"
-                                    height="480"
-                                    className="border border-[#3c3c3c] w-full h-[60%] object-contain shadow-inner cursor-pointer"
-                                    onClick={() => setIsMagnified(true)}
-                                />
-                                {/* Output Terminal */}
-                                <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-[#252526] p-4 border-t border-[#3c3c3c]">
-                                    <h2 className="text-lg font-bold mb-2 flex items-center text-[#d4d4d4]">
-                                        <Terminal className="mr-2" size={18} />
-                                        Output Terminal
-                                    </h2>
-                                    <div className="h-[calc(100%-2rem)] bg-[#1e1e1e] text-[#d4d4d4] p-3 rounded-md shadow-inner overflow-auto font-mono text-sm">
-                                        <pre className="whitespace-pre-wrap break-words">{terminal}</pre>
-                                    </div>
+            <AnimatePresence>
+                {!isFullScreen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        transition={{ type: "spring", stiffness: 1000, damping: 50 }}
+                        className="w-full md:w-1/2 h-full flex flex-col bg-[#2d2d2d] rounded-lg shadow-lg overflow-hidden"
+                    >
+                        <div className="flex-1 relative bg-[#1e1e1e] rounded-lg overflow-hidden">
+                            <motion.canvas
+                                ref={canvasRef}
+                                width="640"
+                                height="480"
+                                className="border border-[#3c3c3c] w-full h-[60%] object-contain shadow-inner cursor-pointer"
+                                onClick={() => setIsMagnified(true)}
+                                layoutId="canvas"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-[#252526] p-4 border-t border-[#3c3c3c]">
+                                <h2 className="text-lg font-bold mb-2 flex items-center text-[#d4d4d4]">
+                                    <Terminal className="mr-2" size={18} />
+                                    Output Terminal
+                                </h2>
+                                <div className="h-[calc(100%-2rem)] bg-[#1e1e1e] text-[#d4d4d4] p-3 rounded-md shadow-inner overflow-auto font-mono text-sm">
+                                    <pre className="whitespace-pre-wrap break-words">{terminal}</pre>
                                 </div>
-
-                                {/* Error Alert */}
-                                <AnimatePresence>
-                                    {error && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 20 }}
-                                            className="absolute top-4 right-4 w-64 bg-[#b43838] bg-opacity-90 backdrop-blur-sm text-white p-3 rounded-md shadow-lg"
-                                        >
-                                            <div className="flex items-start">
-                                                <AlertCircle className="mr-2 flex-shrink-0" size={18} />
-                                                <div>
-                                                    <p className="font-semibold">Error:</p>
-                                                    <pre className="whitespace-pre-wrap text-sm mt-1">{error}</pre>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-
-                                {/* Output Alert */}
-                                <AnimatePresence>
-                                    {output && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 20 }}
-                                            className="absolute top-4 right-4 w-64 bg-[#119762] bg-opacity-90 backdrop-blur-sm text-white p-3 rounded-md shadow-lg"
-                                        >
-                                            <div className="flex items-start">
-                                                <CheckCircle className="mr-2 flex-shrink-0" size={18} />
-                                                <div>
-                                                    <p className="font-semibold">Output:</p>
-                                                    <pre className="whitespace-pre-wrap text-sm mt-1">{output}</pre>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-
                             </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
+
+                            <AnimatePresence>
+                                {error && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 20 }}
+                                        transition={{ type: "spring", stiffness: 1000, damping: 50 }}
+                                        className="absolute top-4 right-4 w-64 bg-[#b43838] bg-opacity-90 backdrop-blur-sm text-white p-3 rounded-md shadow-lg"
+                                    >
+                                        <div className="flex items-start">
+                                            <AlertCircle className="mr-2 flex-shrink-0" size={18} />
+                                            <div>
+                                                <p className="font-semibold">Error:</p>
+                                                <pre className="whitespace-pre-wrap text-sm mt-1">{error}</pre>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+
+                            <AnimatePresence>
+                                {output && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 20 }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                        className="absolute top-4 right-4 w-64 bg-[#119762] bg-opacity-90 backdrop-blur-sm text-white p-3 rounded-md shadow-lg"
+                                    >
+                                        <div className="flex items-start">
+                                            <CheckCircle className="mr-2 flex-shrink-0" size={18} />
+                                            <div>
+                                                <p className="font-semibold">Output:</p>
+                                                <pre className="whitespace-pre-wrap text-sm mt-1">{output}</pre>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <AnimatePresence>
                 {isMagnified && <MagnifiedCanvas />}
             </AnimatePresence>
-        </div >
+        </div>
     );
 
 };
