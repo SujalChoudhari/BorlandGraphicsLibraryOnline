@@ -16,6 +16,8 @@
     "framer-motion": "^11.3.30",
     "lucide-react": "^0.436.0",
     "monaco-editor": "^0.51.0",
+    "moo": "^0.5.2",
+    "nearley": "^2.20.1",
     "next": "14.2.6",
     "react": "^18",
     "react-dom": "^18",

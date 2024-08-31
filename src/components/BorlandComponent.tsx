@@ -1,4 +1,5 @@
 "use client";
+import { graphicsLibDefinitions } from '@/app/libraryDefination';
 import { translateCode } from '@/app/translateCode';
 import { validateCCode } from '@/app/validateCCode';
 import Editor from '@monaco-editor/react';
@@ -11,21 +12,17 @@ import { useEffect, useRef, useState } from 'react';
 const BorlandGraphicsSimulator = () => {
 
     const [code, setCode] = useState<string>(`
-int main(){
-	int maxX,maxY,originX,originY;
+// Draw Axis
+let maxX = getmaxx();
+let maxY = getmaxy();
+let originX = maxX /2;
+let originY = maxY /2;
+line(0,originY,maxX,originY);
+line(originX,0,originX,maxY);
 
-	// Draw Axis
-	maxX = getmaxx();
-	maxY = getmaxy();
-	originX = maxX /2;
-	originY = maxY /2;
-	line(0,originY,maxX,originY);
-	line(originX,0,originX,maxY);
-    // your code here
+// your code here
+closegraph();
 
-	closegraph();
-	return 0;
-}
 `);
 
     const [output, setOutput] = useState<string>('');
@@ -108,6 +105,24 @@ int main(){
                 'rgb(255, 255, 255)'  // 15: WHITE
             ],
 
+            BLACK: 0,
+            BLUE: 1,
+            GREEN: 2,
+            CYAN: 3,
+            RED: 4,
+            MAGENTA: 5,
+            BROWN: 6,
+            LIGHTGRAY: 7,
+            DARKGRAY: 8,
+            LIGHTBLUE: 9,
+            LIGHTGREEN: 10,
+            LIGHTCYAN: 11,
+            LIGHTRED: 12,
+            LIGHTMAGENTA: 13,
+            YELLOW: 14,
+            WHITE: 15,
+
+
 
             NORM_WIDTH: 1,
             THICK_WIDTH: 3,
@@ -178,6 +193,24 @@ int main(){
                 }
 
                 graphicsLib._updateCanvas();
+            },
+
+            scanf: (text: string): string => {
+                graphicsLib.terminal(text);
+                let out = prompt(text);
+                graphicsLib.terminal(out || "");
+                return out || "";
+            },
+            printf: (text: string, ...args: any) => {
+                graphicsLib.terminal(text + " " + args.join(" "));
+            },
+
+            delay: async (ms: number) => {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            },
+
+            sleep: async (s: number) => {
+                return Promise.resolve(new Promise(resolve => setTimeout(resolve, s * 1000)));
             },
 
 
@@ -254,7 +287,11 @@ int main(){
                 ctx?.stroke();
             },
             cleardevice: () => {
+                ctx!.fillStyle = 'black';
                 ctx?.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx?.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                graphicsLib._updateCanvas();
+
             },
             ellipse: (x: number, y: number, startAngle: number, endAngle: number, xRadius: number, yRadius: number) => {
                 ctx?.beginPath();
@@ -272,21 +309,29 @@ int main(){
             },
         };
 
+        // only allow to if delay and sleep is suffixed with `await`
+
+        if (code.includes("delay")) {
+            if (!code.matchAll(/await(\s+)delay/g)) {
+                graphicsLib.terminal("Error: delay must be suffixed with `await`");
+                return;
+            }
+        }
+
+        if (code.includes("s")) {
+            if (!code.matchAll(/await(\s+)sleep/g)) {
+                graphicsLib.terminal("Error: s must be suffixed with `await`");
+                return;
+            }
+        }
+
 
         setTerminal('Program Started\n');
-        const errors = validateCCode(code);
-        if (errors.length > 0) {
-            setError("Invalid Code: Check Terminal");
-            setTerminal(errors.join('\n'));
-            return;
-        }
-        const jsCode = translateCode(code);
-        console.log(jsCode);
         try {
             const runGraphics = new Function('lib', 'input', `
                 return (async () => {
                 with (lib) {
-                        ${jsCode}
+                        ${code}
                 }
             })();
             `);
@@ -343,18 +388,27 @@ int main(){
                         <div className="flex items-center justify-between p-3 bg-[#2d2d2d] border-b border-[#3c3c3c]">
                             <h2 className="text-lg font-bold flex items-center text-[#d4d4d4]">
                                 <Edit2 className="mr-2" size={18} />
-                                Code Editor
+                                Code Editor (JS)
                             </h2>
-                            <button
-                                className="p-1 bg-[#3c3c3c] text-[#d4d4d4] rounded hover:bg-[#4c4c4c] transition-colors duration-150"
-                                onClick={toggleFullScreen}
-                                aria-label={isFullScreen ? "Exit full screen" : "Enter full screen"}
-                            >
-                                {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                            </button>
+
+                            <div className='flex flex-row gap-4 items-center justify-center'>
+                                <button
+                                    className=" px-4 py-2 bg-[#007acc] text-white rounded-md hover:bg-[#006bb3] transition duration-150 flex items-center justify-center shadow-md"
+                                    onClick={runCode}
+                                >
+                                    <Play size={18} />
+                                </button>
+                                <button
+                                    className="px-4 py-2 bg-[#3c3c3c] text-[#d4d4d4] rounded hover:bg-[#4c4c4c] transition-colors duration-150"
+                                    onClick={toggleFullScreen}
+                                    aria-label={isFullScreen ? "Exit full screen" : "Enter full screen"}
+                                >
+                                    {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                                </button>
+                            </div>
                         </div>
                         <Editor
-                            defaultLanguage='c'
+                            defaultLanguage='javascript'
                             theme="vs-dark"
                             loading={<div className="text-center p-4">Loading Graphics Library...</div>}
                             className="flex-grow"
@@ -367,7 +421,13 @@ int main(){
                                 lineNumbers: 'on',
                                 roundedSelection: false,
                                 automaticLayout: true,
+                                wordWrap: 'on',
                                 padding: { top: 10 },
+                                autoClosingBrackets: 'always',
+                            }}
+                            onMount={(editor, monaco) => {
+                                // Inject type definitions for graphicsLib
+                                monaco.languages.typescript.javascriptDefaults.addExtraLib(graphicsLibDefinitions, 'graphicsLib.d.ts');
                             }}
                         />
                     </div>
