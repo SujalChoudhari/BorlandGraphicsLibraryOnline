@@ -4,9 +4,10 @@ import { templates } from '@/app/templates';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Editor from '@monaco-editor/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, Edit2, Maximize2, Minimize2, Pause, Play, Terminal, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, Edit2, HelpCircle, Maximize2, Minimize2, Pause, Play, Terminal, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from './ui/button';
+import Link from 'next/link';
 
 
 
@@ -461,6 +462,12 @@ line(originX,0,originX,maxY);
                                 {isFullScreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
                             </Button>
 
+                            <Link href={"/#reference"} target="_blank">
+                                <Button variant="ghost" size="icon" className='bg-gray-500 hover:bg-gray-600'>
+                                    <HelpCircle size={18} />
+                                </Button>
+                            </Link>
+ 
                             <Button variant="default" size="icon" onClick={runCode} disabled={isRunning} className='bg-teal-700 hover:bg-teal-950'>
                                 <Play size={18} />
                             </Button>
